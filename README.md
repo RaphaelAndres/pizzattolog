@@ -85,10 +85,10 @@ docker compose up --build
 
 | Serviço     | URL                          |
 |-------------|------------------------------|
-| Frontend    | http://localhost:3000        |
-| API (Go)    | http://localhost:8080        |
-| MinIO UI    | http://localhost:9001        |
-| MySQL       | localhost:3306               |
+| Frontend    | http://localhost:3002        |
+| API (Go)    | http://localhost:8081        |
+| MinIO UI    | http://localhost:9101        |
+| MySQL       | localhost:3307               |
 
 > **Credenciais padrão (desenvolvimento):**
 > - Usuário admin: `admin@pizzattolog.com.br` / `Admin@123`

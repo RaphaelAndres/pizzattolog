@@ -12,7 +12,7 @@ services:
       MYSQL_USER: pizzatto
       MYSQL_PASSWORD: pizzatto123
     ports:
-      - "3306:3306"
+      - "3307:3306"
     volumes:
       - mysql_data:/var/lib/mysql
       - ./backend/migrations:/docker-entrypoint-initdb.d
@@ -34,8 +34,8 @@ services:
       MINIO_ROOT_USER: minioadmin
       MINIO_ROOT_PASSWORD: minioadmin
     ports:
-      - "9000:9000"
-      - "9001:9001"
+      - "9100:9000"
+      - "9101:9001"
     volumes:
       - minio_data:/data
     healthcheck:
@@ -84,7 +84,7 @@ services:
       MINIO_BUCKET: licencas
       MINIO_USE_SSL: "false"
     ports:
-      - "8080:8080"
+      - "8081:8080"
     depends_on:
       mysql:
         condition: service_healthy
@@ -101,7 +101,7 @@ services:
     container_name: pizzattolog_frontend
     restart: unless-stopped
     ports:
-      - "3000:80"
+      - "3002:80"
     depends_on:
       - backend
     networks:

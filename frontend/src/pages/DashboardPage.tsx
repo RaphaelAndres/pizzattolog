@@ -4,16 +4,7 @@ import { differenceInDays, format } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 import { CheckCircle2, AlertTriangle, XCircle, Clock, FileText } from 'lucide-react'
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from 'recharts'
-import { STATUS_LABELS, STATUS_COLORS } from '../types'
-import type { Licenca } from '../types'
-
-function StatusBadge({ status }: { status: Licenca['status'] }) {
-  return (
-    <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium border ${STATUS_COLORS[status]}`}>
-      {STATUS_LABELS[status]}
-    </span>
-  )
-}
+import type { StatusLicenca } from '../types'
 
 function StatCard({
   icon: Icon,
@@ -50,7 +41,7 @@ export default function DashboardPage() {
   })
 
   const resumo = data?.dados
-  const contagem = resumo?.contagem_por_status ?? {}
+  const contagem = resumo?.contagem_por_status ?? {} as Record<StatusLicenca, number>
   const proximas = resumo?.proximas_vencer ?? []
 
   const pieData = [
