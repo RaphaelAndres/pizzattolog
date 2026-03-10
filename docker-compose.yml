@@ -1,0 +1,116 @@
+version: "3.9"
+
+services:
+  # ─── Banco de dados ───────────────────────────────────────────────
+  mysql:
+    image: mysql:8.0
+    container_name: pizzattolog_mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: root123
+      MYSQL_DATABASE: pizzattolog
+      MYSQL_USER: pizzatto
+      MYSQL_PASSWORD: pizzatto123
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./backend/migrations:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "pizzatto", "-ppizzatto123"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - pizzattolog_net
+
+  # ─── MinIO (armazenamento de arquivos) ───────────────────────────
+  minio:
+    image: minio/minio:latest
+    container_name: pizzattolog_minio
+    restart: unless-stopped
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - minio_data:/data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - pizzattolog_net
+
+  # ─── Criação do bucket no MinIO ──────────────────────────────────
+  minio-setup:
+    image: minio/mc:latest
+    container_name: pizzattolog_minio_setup
+    depends_on:
+      minio:
+        condition: service_healthy
+    entrypoint: >
+      /bin/sh -c "
+        mc alias set local http://minio:9000 minioadmin minioadmin &&
+        mc mb --ignore-existing local/licencas &&
+        mc anonymous set download local/licencas &&
+        echo 'Bucket criado com sucesso!'
+      "
+    networks:
+      - pizzattolog_net
+
+  # ─── Backend (Go) ────────────────────────────────────────────────
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: pizzattolog_backend
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      DB_HOST: mysql
+      DB_PORT: 3306
+      DB_USER: pizzatto
+      DB_PASSWORD: pizzatto123
+      DB_NAME: pizzattolog
+      MINIO_ENDPOINT: minio:9000
+      MINIO_ACCESS_KEY: minioadmin
+      MINIO_SECRET_KEY: minioadmin
+      MINIO_BUCKET: licencas
+      MINIO_USE_SSL: "false"
+    ports:
+      - "8080:8080"
+    depends_on:
+      mysql:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+    networks:
+      - pizzattolog_net
+
+  # ─── Frontend (React) ────────────────────────────────────────────
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: pizzattolog_frontend
+    restart: unless-stopped
+    ports:
+      - "3000:80"
+    depends_on:
+      - backend
+    networks:
+      - pizzattolog_net
+
+volumes:
+  mysql_data:
+  minio_data:
+
+networks:
+  pizzattolog_net:
+    driver: bridge

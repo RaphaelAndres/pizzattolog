@@ -1,0 +1,23 @@
+# Go
+backend/server
+backend/coverage.out
+backend/*.exe
+
+# Node / React
+frontend/node_modules/
+frontend/dist/
+frontend/.env.local
+
+# Env
+.env
+!.env.example
+
+# Docker volumes
+mysql_data/
+minio_data/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+.DS_Store
